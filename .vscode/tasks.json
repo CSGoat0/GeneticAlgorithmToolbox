@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "C/C++: g++.exe build active file",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-g",
+                "${workspaceFolder}/main.cpp",
+                "${workspaceFolder}/src/core/Chromosome.cpp",
+                "${workspaceFolder}/src/core/Population.cpp",
+                "${workspaceFolder}/src/algorithms/Selection.cpp",
+                "${workspaceFolder}/src/algorithms/Crossover.cpp",
+                "${workspaceFolder}/src/algorithms/Mutation.cpp",
+                "${workspaceFolder}/src/algorithms/Replacement.cpp",
+                "${workspaceFolder}/src/builder/GeneticAlgorithmBuilder.cpp",
+                "${workspaceFolder}/src/toolbox/GeneticAlgorithmToolbox.cpp",
+                "-I", "${workspaceFolder}/include",
+                "-o",
+                "${workspaceFolder}/build/main.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
