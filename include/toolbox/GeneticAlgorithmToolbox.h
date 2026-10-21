@@ -15,11 +15,15 @@ private:
     std::unique_ptr<Crossover> crossoverAlgo;
     std::unique_ptr<Mutation> mutationAlgo;
     std::unique_ptr<Replacement> replacementAlgo;
+    
     std::function<double(const Chromosome&)> fitnessFn;
     std::function<bool(const Chromosome&)> feasibilityFn;
     Population population;
     
-    std::mt19937 rng; // Random number generator
+    std::mt19937 rng;
+    
+    double crossoverProb;
+    double mutationProb;
 
     void handleInfeasible(Chromosome& chromosome);
 
