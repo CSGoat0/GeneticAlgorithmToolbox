@@ -1,56 +1,49 @@
 #include <iostream>
 #include <random>
 #include "core/Population.h"
-#include "algorithms/Selection.h"
-#include "algorithms/Replacement.h"
+#include "algorithms/Crossover.h"
+#include "algorithms/Mutation.h"
 
 int main() {
     std::mt19937 rng(42);
 
-    // Create a population
-    Population pop;
-    for (int i = 0; i < 10; ++i) {
-        pop.addIndividual(std::make_unique<FloatChromosome>(3, -10.0, 10.0, rng));
-    }
-
-    // Assign fake fitnesses (0 to 9)
-    auto& inds = pop.getIndividuals();
-    for (int i = 0; i < 10; ++i) {
-        inds[i]->setFitness(i * 10.0); // Fitnesses: 0, 10, 20... 90
-    }
-
     // ==========================================
-    // Test Selection
+    // Test Order Crossover (OX)
     // ==========================================
-    std::cout << "\nTesting Tournament Selection (size 3)..." << std::endl;
-    TournamentSelection tournament(3);
-    auto parents = tournament.select(pop, 5, rng);
+    std::cout << "\nTesting Order Crossover..." << std::endl;
+    std::vector<int> genes1 = {1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<int> genes2 = {8, 7, 6, 5, 4, 3, 2, 1};
     
-    for (auto* p : parents) {
-        std::cout << "Selected Parent Fitness: " << p->getFitness() << std::endl;
-    }
-    // Notice how the selected fitnesses are usually 70 or 80, because tournament favors the best.
+    IntegerChromosome p1(genes1, 1, 8);
+    IntegerChromosome p2(genes2, 1, 8);
 
-    // ==========================================
-    // Test Replacement
-    // ==========================================
-    std::cout << "\nTesting Elitist Replacement..." << std::endl;
+    OrderCrossover ox;
+    auto offspring = ox.crossover(p1, p2, rng);
     
-    // Create 10 bad offspring (fitness = 5.0)
-    std::vector<std::unique_ptr<Chromosome>> offspring;
-    for (int i = 0; i < 10; ++i) {
-        auto child = std::make_unique<FloatChromosome>(3, -10.0, 10.0, rng);
-        child->setFitness(5.0); 
-        offspring.push_back(std::move(child));
-    }
+    auto& child1 = dynamic_cast<IntegerChromosome&>(*offspring.first);
+    std::cout << "Parent 1: ";
+    for (int g : genes1) std::cout << g << " ";
+    std::cout << "\nParent 2: ";
+    for (int g : genes2) std::cout << g << " ";
+    std::cout << "\nChild 1:  ";
+    for (size_t i = 0; i < child1.getSize(); ++i) std::cout << child1.getGene(i) << " ";
+    std::cout << std::endl;
 
-    ElitistReplacement elitist;
-    elitist.replace(pop, offspring);
+    // ==========================================
+    // Test Swap Mutation
+    // ==========================================
+    std::cout << "\nTesting Swap Mutation..." << std::endl;
+    SwapMutation swapMut;
+    std::cout << "Before Swap: ";
+    for (size_t i = 0; i < child1.getSize(); ++i) std::cout << child1.getGene(i) << " ";
+    std::cout << std::endl;
+    
+    // Note: Since mutation is probabilistic, we run it once and hope it swaps. 
+    swapMut.mutate(child1, 0, 100, rng); 
 
-    // The best individual from before was 90.0. It should survive because of elitism!
-    std::cout << "New Best Fitness after Elitist Replacement: " 
-              << pop.getBestIndividual()->getFitness() << std::endl;
-    std::cout << "Population size after replacement: " << pop.size() << std::endl;
+    std::cout << "After Swap:  ";
+    for (size_t i = 0; i < child1.getSize(); ++i) std::cout << child1.getGene(i) << " ";
+    std::cout << std::endl;
 
     return 0;
 }
