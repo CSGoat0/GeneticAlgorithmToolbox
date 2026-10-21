@@ -3,8 +3,6 @@
 #include "core/Population.h"
 
 int main() {
-    std::cout << "--- Phase 1 Checkpoint ---" << std::endl;
-
     // 1. Setup random generator
     std::mt19937 rng(42); // Fixed seed for reproducible results
 
