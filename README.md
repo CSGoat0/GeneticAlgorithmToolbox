@@ -63,6 +63,72 @@ The toolbox supports three distinct genotype representations:
 * Generational Replacement
 * Elitist Replacement (Preserves the best chromosomes)
 
+## 🛠️ Usage Example: Wiring the Builder & Toolbox
+
+This project uses the **Builder Pattern** to make configuring the Genetic Algorithm incredibly clean. You don't need to memorize complex constructor arguments. You simply chain the configurations and inject your problem-specific functions.
+
+Here is an example of how to solve a simple mathematical optimization problem (maximizing \(f(x) = x^2\)) using the toolbox:
+
+```cpp
+#include "builder/GeneticAlgorithmBuilder.h"
+#include "core/Chromosome.h"
+#include <iostream>
+#include <random>
+
+int main() {
+    // 1. Configure the GA Hyperparameters
+    GAConfig config;
+    config.populationSize = 50;
+    config.maxGenerations = 100;
+    config.crossoverProbability = 0.8;
+    config.mutationProbability = 0.1;
+
+    // 2. Create the Initial Population (Float Chromosomes)
+    std::mt19937 rng(std::random_device{}());
+    Population initialPop;
+    for (int i = 0; i < config.populationSize; ++i) {
+        // Chromosome of size 1, bounds between [-100, 100]
+        initialPop.addIndividual(std::make_unique<FloatChromosome>(1, -100.0, 100.0, rng));
+    }
+
+    // 3. Build and Configure the Toolbox using the Builder
+    GeneticAlgorithmBuilder builder;
+    auto toolbox = builder
+        .setConfig(config)
+        .setInitialPopulation(std::move(initialPop))
+        
+        // Choose the algorithms (Strategy Pattern)
+        .setSelection(std::make_unique<TournamentSelection>(3))
+        .setCrossover(std::make_unique<MultiPointCrossover>())
+        .setMutation(std::make_unique<UniformFloatMutation>())
+        .setReplacement(std::make_unique<ElitistReplacement>())
+        
+        // Inject the Problem-Specific Logic (Dependency Injection)
+        .setFitnessFunction([](const Chromosome& c) {
+            // Objective: Maximize x^2
+            auto& floatChromo = dynamic_cast<const FloatChromosome&>(c);
+            double x = floatChromo.getGene(0);
+            return x * x; // Fitness = x^2
+        })
+        .setFeasibilityFunction([](const Chromosome& c) {
+            // This simple problem has no constraints, so everything is feasible
+            return true; 
+        })
+        .build(); // Finalize and create the Toolbox
+
+    // 4. Run the GA
+    std::cout << "Running Genetic Algorithm..." << std::endl;
+    auto bestSolution = toolbox->run();
+
+    // 5. Output the result
+    auto& bestFloat = dynamic_cast<FloatChromosome&>(*bestSolution);
+    std::cout << "Best x found: " << bestFloat.getGene(0) << std::endl;
+    std::cout << "Best Fitness (x^2): " << bestSolution->getFitness() << std::endl;
+
+    return 0;
+}
+```
+
 ## 🚀 How to Run (VS Code)
 
 ### Prerequisites
