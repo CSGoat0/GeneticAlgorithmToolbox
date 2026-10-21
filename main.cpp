@@ -5,7 +5,6 @@
 #include "algorithms/Replacement.h"
 
 int main() {
-    std::cout << "--- Phase 2 Checkpoint ---" << std::endl;
     std::mt19937 rng(42);
 
     // Create a population
