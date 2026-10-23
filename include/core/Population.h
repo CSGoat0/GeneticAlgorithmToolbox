@@ -13,5 +13,6 @@ public:
     void clear();
     size_t size() const;
     Chromosome* getBestIndividual() const;
+    double getAverageFitness() const;
     std::vector<std::unique_ptr<Chromosome>>& getIndividuals();
 };
