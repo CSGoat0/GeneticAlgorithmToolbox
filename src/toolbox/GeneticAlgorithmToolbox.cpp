@@ -12,10 +12,19 @@ GeneticAlgorithmToolbox::GeneticAlgorithmToolbox(
     fitnessFn(fitFn), feasibilityFn(feasFn), population(std::move(initialPop)),
     rng(std::random_device{}()), 
     crossoverProb(config.crossoverProbability), 
-    mutationProb(config.mutationProbability) {}
+    mutationProb(config.mutationProbability) 
+{
+    // Safety check: If initial population size doesn't match config, warn the user.
+    if (population.size() != config.populationSize) {
+        std::cerr << "Warning: Initial population size (" << population.size() 
+                  << ") does not match GAConfig.populationSize (" << config.populationSize << ").\n";
+    }
+}
 
 void GeneticAlgorithmToolbox::handleInfeasible(Chromosome& chromosome) {
-    // Simple penalty: if infeasible, its fitness becomes 0.
+    // 1. Death Penalty: Set fitness to 0 so it is not selected.
+    // 2. We also reset the genes to something valid if possible (optional, problem-specific).
+    // For the general toolbox, we just apply the penalty.
     chromosome.setFitness(0.0);
 }
 
@@ -38,8 +47,7 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
         // We need to select parents until we have enough to replace the population.
         // Assuming 2 parents make 2 children, we need popSize parents.
         size_t numParents = config.populationSize;
-        // Ensure even number of parents for pairwise crossover
-        if (numParents % 2 != 0) numParents++; 
+        if (numParents % 2 != 0) numParents++; // Ensure even for pairwise crossover
         
         auto parents = selectionAlgo->select(population, numParents, rng);
         std::vector<std::unique_ptr<Chromosome>> offspring;
@@ -65,7 +73,7 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
                 c2 = p2->clone();
             }
 
-            // Apply Mutation (The mutation algorithms themselves check the probability internally)
+            // Apply Mutation (Passing the probability from config)
             mutationAlgo->mutate(*c1, gen, config.maxGenerations, mutationProb, rng);
             mutationAlgo->mutate(*c2, gen, config.maxGenerations, mutationProb, rng);
 
@@ -84,10 +92,23 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
         // Step E: Replacement
         replacementAlgo->replace(population, offspring);
 
+        // If replacement resulted in a smaller population, clone random individuals to fill it.
+        // (This handles scenarios where the replacement strategy might lose individuals).
+        while (population.size() < config.populationSize) {
+            Chromosome* best = population.getBestIndividual();
+            if (best) {
+                population.addIndividual(best->clone());
+            } else {
+                break; // Safety check if population is completely empty
+            }
+        }
+
         // Print progress every 20 generations
         if (gen % 20 == 0) {
             Chromosome* best = population.getBestIndividual();
-            std::cout << "Gen " << gen << " | Best Fitness: " << best->getFitness() << std::endl;
+            if (best) {
+                std::cout << "Gen " << gen << " | Best Fitness: " << best->getFitness() << std::endl;
+            }
         }
     }
 
