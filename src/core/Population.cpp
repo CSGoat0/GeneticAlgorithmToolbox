@@ -27,6 +27,16 @@ Chromosome* Population::getBestIndividual() const {
     return best;
 }
 
+double Population::getAverageFitness() const {
+    if (individuals.empty()) return 0.0;
+    
+    double totalFitness = 0.0;
+    for (const auto& ind : individuals) {
+        totalFitness += ind->getFitness();
+    }
+    return totalFitness / individuals.size();
+}
+
 std::vector<std::unique_ptr<Chromosome>>& Population::getIndividuals() {
     return individuals;
 }
