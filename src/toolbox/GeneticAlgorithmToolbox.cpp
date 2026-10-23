@@ -66,8 +66,8 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
             }
 
             // Apply Mutation (The mutation algorithms themselves check the probability internally)
-            mutationAlgo->mutate(*c1, gen, config.maxGenerations, rng);
-            mutationAlgo->mutate(*c2, gen, config.maxGenerations, rng);
+            mutationAlgo->mutate(*c1, gen, config.maxGenerations, mutationProb, rng);
+            mutationAlgo->mutate(*c2, gen, config.maxGenerations, mutationProb, rng);
 
             // Step D: Evaluate Offspring
             if (feasibilityFn(*c1)) c1->setFitness(fitnessFn(*c1));
