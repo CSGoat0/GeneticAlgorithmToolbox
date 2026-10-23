@@ -47,7 +47,7 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
         // We need to select parents until we have enough to replace the population.
         // Assuming 2 parents make 2 children, we need popSize parents.
         size_t numParents = config.populationSize;
-        if (numParents % 2 != 0) numParents++; // Ensure even for pairwise crossover
+        if (numParents % 2 != 0) numParents++; 
         
         auto parents = selectionAlgo->select(population, numParents, rng);
         std::vector<std::unique_ptr<Chromosome>> offspring;
@@ -92,26 +92,36 @@ std::unique_ptr<Chromosome> GeneticAlgorithmToolbox::run() {
         // Step E: Replacement
         replacementAlgo->replace(population, offspring);
 
-        // If replacement resulted in a smaller population, clone random individuals to fill it.
-        // (This handles scenarios where the replacement strategy might lose individuals).
+        // Enforce population size constraint
         while (population.size() < config.populationSize) {
             Chromosome* best = population.getBestIndividual();
             if (best) {
                 population.addIndividual(best->clone());
             } else {
-                break; // Safety check if population is completely empty
+                break;
             }
         }
 
-        // Print progress every 20 generations
+        // Logging
         if (gen % 20 == 0) {
             Chromosome* best = population.getBestIndividual();
             if (best) {
-                std::cout << "Gen " << gen << " | Best Fitness: " << best->getFitness() << std::endl;
+                std::cout << "Gen " << gen 
+                          << " | Best Fitness: " << best->getFitness() 
+                          << " | Avg Fitness: " << population.getAverageFitness() 
+                          << std::endl;
             }
         }
     }
 
     std::cout << "GA Finished." << std::endl;
-    return population.getBestIndividual()->clone();
+    
+    // Check for nullptr before cloning
+    Chromosome* best = population.getBestIndividual();
+    if (best == nullptr) {
+        std::cerr << "Error: GA finished with an empty population!" << std::endl;
+        return nullptr;
+    }
+    
+    return best->clone();
 }
