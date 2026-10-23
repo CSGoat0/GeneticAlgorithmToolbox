@@ -1,24 +1,41 @@
 #include "../../include/algorithms/Mutation.h"
 #include <cmath>
+#include <stdexcept>
 
+// ==========================================
+// --- Bit-Flip Mutation (Binary) ---
+// ==========================================
 void BitFlipMutation::mutate(Chromosome& chromosome, int currentGen, int maxGen, double mutationProb, std::mt19937& rng) {
+    // Verify type before casting
+    if (dynamic_cast<BinaryChromosome*>(&chromosome) == nullptr) {
+        throw std::invalid_argument("BitFlipMutation can only be applied to BinaryChromosome!");
+    }
+
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     auto& binaryChromo = dynamic_cast<BinaryChromosome&>(chromosome);
     
     for (size_t i = 0; i < binaryChromo.getSize(); ++i) {
-        if (dist(rng) <= mutationProb) { // USE PASSED PROBABILITY
+        if (dist(rng) <= mutationProb) {
             binaryChromo.flipGene(i);
         }
     }
 }
 
+// ==========================================
+// --- Uniform Float Mutation ---
+// ==========================================
 void UniformFloatMutation::mutate(Chromosome& chromosome, int currentGen, int maxGen, double mutationProb, std::mt19937& rng) {
+    // Verify type before casting
+    if (dynamic_cast<FloatChromosome*>(&chromosome) == nullptr) {
+        throw std::invalid_argument("UniformFloatMutation can only be applied to FloatChromosome!");
+    }
+
     std::uniform_real_distribution<double> probDist(0.0, 1.0);
     std::uniform_real_distribution<double> randDist(0.0, 1.0);
     auto& floatChromo = dynamic_cast<FloatChromosome&>(chromosome);
     
     for (size_t i = 0; i < floatChromo.getSize(); ++i) {
-        if (probDist(rng) <= mutationProb) { // USE PASSED PROBABILITY
+        if (probDist(rng) <= mutationProb) {
             double x = floatChromo.getGene(i);
             auto bounds = floatChromo.getBounds(i);
             double LB = bounds.first, UB = bounds.second;
@@ -35,13 +52,21 @@ void UniformFloatMutation::mutate(Chromosome& chromosome, int currentGen, int ma
     }
 }
 
+// ==========================================
+// --- Non-Uniform Float Mutation ---
+// ==========================================
 void NonUniformFloatMutation::mutate(Chromosome& chromosome, int currentGen, int maxGen, double mutationProb, std::mt19937& rng) {
+    // Verify type before casting
+    if (dynamic_cast<FloatChromosome*>(&chromosome) == nullptr) {
+        throw std::invalid_argument("NonUniformFloatMutation can only be applied to FloatChromosome!");
+    }
+
     std::uniform_real_distribution<double> probDist(0.0, 1.0);
     std::uniform_real_distribution<double> randDist(0.0, 1.0);
     auto& floatChromo = dynamic_cast<FloatChromosome&>(chromosome);
     
     for (size_t i = 0; i < floatChromo.getSize(); ++i) {
-        if (probDist(rng) <= mutationProb) { // USE PASSED PROBABILITY
+        if (probDist(rng) <= mutationProb) {
             double x = floatChromo.getGene(i);
             auto bounds = floatChromo.getBounds(i);
             double LB = bounds.first, UB = bounds.second;
@@ -63,17 +88,27 @@ void NonUniformFloatMutation::mutate(Chromosome& chromosome, int currentGen, int
     }
 }
 
+// ==========================================
+// --- Swap Mutation (Integer/Permutation) ---
+// ==========================================
 void SwapMutation::mutate(Chromosome& chromosome, int currentGen, int maxGen, double mutationProb, std::mt19937& rng) {
+    // Verify type before casting
+    if (dynamic_cast<IntegerChromosome*>(&chromosome) == nullptr) {
+        throw std::invalid_argument("SwapMutation can only be applied to IntegerChromosome!");
+    }
+
     std::uniform_real_distribution<double> probDist(0.0, 1.0);
     auto& intChromo = dynamic_cast<IntegerChromosome&>(chromosome);
     if (intChromo.getSize() < 2) return;
 
-    if (probDist(rng) <= mutationProb) { // USE PASSED PROBABILITY
+    if (probDist(rng) <= mutationProb) {
         std::uniform_int_distribution<size_t> indexDist(0, intChromo.getSize() - 1);
         size_t idx1 = indexDist(rng);
         size_t idx2 = indexDist(rng);
         
-        while (idx1 == idx2) idx2 = indexDist(rng);
+        while (idx1 == idx2) {
+            idx2 = indexDist(rng);
+        }
 
         int temp = intChromo.getGene(idx1);
         intChromo.setGene(idx1, intChromo.getGene(idx2));
