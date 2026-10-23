@@ -21,7 +21,7 @@ int main() {
     auto toolbox = builder
         .setConfig(config)
         
-        // NEW: Injecting the Initialization logic here!
+        // Injecting the Initialization logic here!
         .setInitializer([](int popSize) {
             Population pop;
             std::mt19937 initRng(42); // Fixed seed for initial pop
@@ -48,10 +48,8 @@ int main() {
         })
         .build();
 
-    // 4. Run the GA
     auto bestSolution = toolbox->run();
 
-    // 5. Output Results
     auto& bestFloat = dynamic_cast<FloatChromosome&>(*bestSolution);
     std::cout << "\nBest x found: " << bestFloat.getGene(0) << std::endl;
     std::cout << "Fitness: " << bestSolution->getFitness() << std::endl;
